@@ -29,16 +29,12 @@ check_input(){
 }
 
 build_image(){
-    docker build . --tag ${BUILDER}/${REPO} 
+    docker buildx build . --platform linux/amd64,linux/arm64 -t ${BUILDER}/${REPO}
 }
 
 push_image(){
     if [ ! -z "${PUSH}" ]; then
-        docker ${CONFIG} push ${BUILDER}/${REPO}:${1}-${2}
-        if [ ! -z "${TAG}" ]; then
-            docker tag ${BUILDER}/${REPO}:${1}-${2} ${BUILDER}/${REPO}:${3}
-            docker ${CONFIG} push ${BUILDER}/${REPO}:${3}
-        fi
+        docker buildx build . --platform linux/amd64,linux/arm64 -t ${BUILDER}/${REPO} --output=type=registry
     else
         echo 'Skip Push.'    
     fi

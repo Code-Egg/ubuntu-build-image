@@ -19,6 +19,7 @@ RUN apt-get -y install \
         devscripts \
         pbuilder \
         debhelper \
+        debsigs\
         ubuntu-dev-tools
 
 RUN apt-get -y install \

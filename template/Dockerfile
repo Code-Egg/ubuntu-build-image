@@ -32,3 +32,4 @@ RUN apt-get -y install \
 
 ADD .pbuilderrc /root/.pbuilderrc
 COPY base_img/ /var/cache/pbuilder/
+RUN ls -lh /var/cache/pbuilder/

@@ -31,4 +31,4 @@ RUN apt-get -y install \
 #RUN pbuilder-dist noble create --mirror https://mirrors.dc.clear.net.ar/ubuntu/
 
 ADD .pbuilderrc /root/.pbuilderrc
-ADD base_img/* /var/cache/pbuilder/
+COPY base_img/ /var/cache/pbuilder/

@@ -3,7 +3,7 @@ OLS_VERSION=''
 PHP_VERSION=''
 PUSH=''
 CONFIG=''
-TAG='2'
+TAG=''
 BUILDER='eggcold'
 REPO='debian-build'
 EPACE='        '
@@ -29,12 +29,12 @@ check_input(){
 }
 
 build_image(){
-    docker buildx build . --platform linux/amd64,linux/arm64 -t ${BUILDER}/${REPO}:${TAG} --load --progress=plain
+    docker buildx build . --platform linux/amd64,linux/arm64 -t ${BUILDER}/${REPO}:latest -t ${BUILDER}/${REPO}:${TAG} --load --progress=plain
 }
 
 push_image(){
     if [ ! -z "${PUSH}" ]; then
-        docker buildx build . --platform linux/amd64,linux/arm64 -t ${BUILDER}/${REPO}:${TAG} --output=type=registry
+        docker buildx build . --platform linux/amd64,linux/arm64 -t ${BUILDER}/${REPO}:latest -t ${BUILDER}/${REPO}:${TAG} --output=type=registry
     else
         echo 'Skip Push.'    
     fi

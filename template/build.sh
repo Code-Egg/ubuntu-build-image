@@ -58,8 +58,10 @@ while [ ! -z "${1}" ]; do
             PUSH=true
             ;;            
         *) 
-            help_message
-            ;;              
+            if [[ "${1}" == -* ]]; then
+                help_message
+            fi
+            ;;         
     esac
     shift
 done

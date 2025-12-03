@@ -48,20 +48,24 @@ main(){
 check_input ${1}
 while [ ! -z "${1}" ]; do
     case ${1} in
-        -[hH] | -help | --help)
+        -h|-H|-help|--help)
             help_message
             ;;
-        -[tT] | -tag | -TAG | --tag) shift
-            TAG="${1}"
-            ;;       
-        --push ) shift
+
+        -t|-T|-tag|-TAG|--tag)
+            TAG="${2}"
+            shift
+            ;;
+
+        --push)
             PUSH=true
-            ;;            
-        *) 
+            ;;
+
+        *)
             if [[ "${1}" == -* ]]; then
                 help_message
             fi
-            ;;         
+            ;;
     esac
     shift
 done

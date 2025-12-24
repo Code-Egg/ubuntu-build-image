@@ -8,6 +8,7 @@ RUN apt-get update && \
         ccache \
         clang \
         curl \
+        aptitude \
         git \
         sudo \
         wget \

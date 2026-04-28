@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-OLS_VERSION=''
-PHP_VERSION=''
+
 PUSH=''
-CONFIG=''
 TAG=''
 BUILDER='eggcold'
 REPO='debian-build'
@@ -11,48 +9,78 @@ EPACE='        '
 echow(){
     FLAG=${1}
     shift
-    echo -e "\033[1m${EPACE}${FLAG}\033[0m${@}"
+    echo -e "\033[1m${EPACE}${FLAG}\033[0m ${@}"
 }
 
 help_message(){
-    echo -e "\033[1mOPTIONS\033[0m" 
-    echo "${EPACE}${EPACE}Example: bash build.sh"
-    echow '--push'
-    echo "${EPACE}${EPACE}Example: build.sh --push, will push to the dockerhub"
+    echo -e "\033[1mOPTIONS\033[0m"
+    echo "${EPACE}Example: bash build.sh (build with tag dev)"
+    echo "${EPACE}Example: bash build.sh -t 10 (build only with tag 10)"
+    echo "${EPACE}Example: bash build.sh --push (push with latest and number+1)"
     exit 0
 }
 
 check_input(){
     if [ -z "${1}" ]; then
-        help_message
+        return
     fi
 }
 
-build_image(){
-    docker buildx build . --platform linux/amd64,linux/arm64 -t ${BUILDER}/${REPO}:latest -t ${BUILDER}/${REPO}:${TAG} --load --progress=plain
-}
+auto_tag(){
+    echow "INFO" "Fetching latest tag from Docker Hub..."
 
-push_image(){
-    if [ ! -z "${PUSH}" ]; then
-        docker buildx build . --platform linux/amd64,linux/arm64 -t ${BUILDER}/${REPO}:latest -t ${BUILDER}/${REPO}:${TAG} --output=type=registry
+    LATEST=$(curl -s "https://hub.docker.com/v2/repositories/${BUILDER}/${REPO}/tags?page_size=100" \
+        | jq -r '.results[].name' \
+        | grep -E '^[0-9]+$' \
+        | sort -n \
+        | tail -1)
+
+    if [[ -z "$LATEST" ]]; then
+        TAG=1
     else
-        echo 'Skip Push.'    
+        TAG=$((LATEST + 1))
     fi
+
+    echow "INFO" "Auto tag: ${TAG}"
+}
+
+build(){
+    OUTPUT="--load"
+
+    if [[ ! -z "${PUSH}" ]]; then
+        OUTPUT="--push"
+    fi
+
+    echow "INFO" "Building image..."
+    echow "INFO" "Tag: ${TAG}"
+    echow "INFO" "Push: ${PUSH:-false}"
+
+    docker buildx build \
+        -f Dockerfile . \
+        --platform linux/amd64,linux/arm64 \
+        -t ${BUILDER}/${REPO}:latest \
+        -t ${BUILDER}/${REPO}:${TAG} \
+        ${OUTPUT} \
+        --progress=plain
 }
 
 main(){
-    build_image ${OLS_VERSION} ${PHP_VERSION}
-    push_image ${OLS_VERSION} ${PHP_VERSION} ${TAG}
+    if [[ -z "${TAG}" && ! -z "${PUSH}" ]]; then
+        auto_tag
+    fi
+    if [[ -z "${TAG}" ]]; then
+        TAG="dev"
+    fi
+    build
 }
 
-check_input ${1}
 while [ ! -z "${1}" ]; do
     case ${1} in
         -h|-H|-help|--help)
             help_message
             ;;
 
-        -t|-T|-tag|-TAG|--tag)
+        -t|-T|--tag)
             TAG="${2}"
             shift
             ;;
